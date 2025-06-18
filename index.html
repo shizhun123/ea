@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECharts 地图示例</title>
+  <!-- 引入 ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <!-- 图表容器 -->
+  <div id="main" style="width: 800px;height:600px;"></div>
+  <script>
+    // 初始化图表
+    var myChart = echarts.init(document.getElementById('main'));
+    
+    // 指定图表配置项和数据
+    var option = {
+      title: {
+        text: '中国地图示例',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'item'
+      },
+      series: [
+        {
+          name: '数据',
+          type: 'map',
+          mapType: 'china',
+          data: [
+            {name: '北京', value: 100},
+            {name: '上海', value: 200},
+            {name: '广东', value: 300},
+            // 其他省份数据...
+          ]
+        }
+      ]
+    };
+    
+    // 使用配置项显示图表
+    myChart.setOption(option);
+  </script>
+</body>
+</html>
