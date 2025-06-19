@@ -94,7 +94,7 @@
 
   <script>
     // 1. 先加载中国地图 JSON 数据（修复 404 问题）
-    fetch('https://fastly.jsdelivr.net/npm/echarts-geo-json@1.0.0/china.json')
+   fetch('https://cdn.bootcdn.net/ajax/libs/echarts-geo-json/1.0.0/china.json')
       .then(res => res.json())
       .then(chinaJson => {
         echarts.registerMap('china', chinaJson); // 注册地图
