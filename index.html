@@ -3,119 +3,315 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>行业产值对比条形图</title>
+  <title>中国候鸟迁徙路线图</title>
   <!-- 引入 ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <!-- 引入中国地图数据 -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/js/china.js"></script>
   <style>
-    body { font-family: 'Microsoft YaHei', sans-serif; }
-    #main { width: 800px; height: 600px; margin: 0 auto; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f0f2f5;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    #map {
+      width: 100%;
+      height: 600px;
+      margin: 20px 0;
+    }
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      line-height: 1.6;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 10px 0;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+    }
+    .legend-color {
+      width: 20px;
+      height: 10px;
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
-  <!-- 图表容器 -->
-  <div id="main"></div>
+  <div class="container">
+    <h1>中国候鸟迁徙路线图</h1>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #3182bd;"></div>
+        <span>东亚-澳大利西亚路线</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #e6550d;"></div>
+        <span>中亚路线</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #31a354;"></div>
+        <span>东非-西亚路线</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #756bb1;"></div>
+        <span>主要停歇地</span>
+      </div>
+    </div>
+    
+    <div id="map"></div>
+    
+    <div class="info">
+      <h3>候鸟迁徙知识</h3>
+      <p>中国是全球候鸟迁徙的重要区域，主要有三条迁徙路线：</p>
+      <ul>
+        <li>东亚-澳大利西亚路线：从阿拉斯加经西伯利亚、中国东部沿海到澳大利亚和新西兰</li>
+        <li>中亚路线：从中亚经青藏高原、中国中西部到印度次大陆</li>
+        <li>东非-西亚路线：从非洲经中东、中国西部到南亚</li>
+      </ul>
+      <p>点击地图上的标记可查看更多信息，包括常见鸟类、保护现状等。</p>
+    </div>
+  </div>
 
   <script>
     // 初始化图表
-    var myChart = echarts.init(document.getElementById('main'));
+    var myChart = echarts.init(document.getElementById('map'));
     
-    // 准备数据（各行业2024年产值对比，单位：万亿元）
-    var industryData = [
-      {name: '信息技术', value: 18.5, itemStyle: {color: '#3182bd'}},
-      {name: '制造业', value: 32.2, itemStyle: {color: '#f6ad55'}},
-      {name: '金融业', value: 15.8, itemStyle: {color: '#48bb78'}},
-      {name: '服务业', value: 42.3, itemStyle: {color: '#ed8936'}},
-      {name: '能源业', value: 12.6, itemStyle: {color: '#9f7aea'}},
-      {name: '农业', value: 8.7, itemStyle: {color: '#2b6cb0'}},
-      {name: '建筑业', value: 14.5, itemStyle: {color: '#e53e3e'}}
+    // 候鸟迁徙路线数据
+    var migrationRoutes = [
+      {
+        name: '东亚-澳大利西亚路线',
+        color: '#3182bd',
+        path: [
+          [127.5, 52.5], // 起点：西伯利亚东部
+          [125.5, 48.5],
+          [124.5, 45.5],
+          [123.5, 41.5],
+          [121.5, 37.5],
+          [121.5, 32.5],
+          [121.5, 28.5],
+          [121.5, 24.5],
+          [121.5, 20.5],
+          [119.5, 16.5], // 台湾海峡
+          [117.5, 12.5], // 南海
+          [115.5, 8.5],  // 终点：澳大利亚
+        ],
+        stops: [
+          {name: '黄河三角洲', value: 100, coord: [118.5, 37.5]},
+          {name: '崇明东滩', value: 90, coord: [121.9, 31.4]},
+          {name: '深圳福田', value: 80, coord: [114.1, 22.5]},
+          {name: '台湾台南', value: 70, coord: [120.2, 22.9]},
+        ]
+      },
+      {
+        name: '中亚路线',
+        color: '#e6550d',
+        path: [
+          [85.5, 50.5], // 起点：西伯利亚南部
+          [85.5, 45.5],
+          [87.5, 40.5],
+          [90.5, 35.5],
+          [95.5, 30.5],
+          [100.5, 25.5],
+          [105.5, 20.5], // 终点：印度支那
+        ],
+        stops: [
+          {name: '青海湖', value: 95, coord: [100.2, 36.9]},
+          {name: '鄱阳湖', value: 85, coord: [116.2, 29.1]},
+          {name: '云贵高原', value: 75, coord: [103.5, 25.5]},
+        ]
+      },
+      {
+        name: '东非-西亚路线',
+        color: '#31a354',
+        path: [
+          [70.5, 45.5], // 起点：中亚
+          [75.5, 40.5],
+          [80.5, 35.5],
+          [85.5, 30.5],
+          [90.5, 25.5],
+          [95.5, 20.5], // 终点：南亚
+        ],
+        stops: [
+          {name: '新疆巴音布鲁克', value: 85, coord: [84.2, 42.9]},
+          {name: '西藏纳木错', value: 80, coord: [91.0, 30.7]},
+          {name: '云南大山包', value: 70, coord: [103.1, 27.3]},
+        ]
+      }
     ];
     
-    // 提取类别和数值用于坐标轴
-    var categories = industryData.map(item => item.name);
-    var values = industryData.map(item => item.value);
+    // 转换路线数据为ECharts格式
+    var linesData = [];
+    var pointsData = [];
+    var specialPoints = [];
     
-    // 指定图表配置项和数据
-    var option = {
-      // 标题
-      title: {
-        text: '2024年中国主要行业产值对比',
-        subtext: '数据来源：国家统计局（模拟）',
-        left: 'center',
-        textStyle: {fontSize: 18, fontWeight: 'bold'}
-      },
+    migrationRoutes.forEach(route => {
+      // 生成路线
+      for (let i = 0; i < route.path.length - 1; i++) {
+        linesData.push({
+          coords: [route.path[i], route.path[i + 1]],
+          lineStyle: {
+            color: route.color,
+            width: 2,
+            opacity: 0.8,
+            curveness: 0.2
+          }
+        });
+      }
       
-      // 工具箱（包含保存图片等功能）
-      toolbox: {
-        show: true,
-        feature: {
-          saveAsImage: {show: true}
-        }
-      },
-      
-      // 提示框（鼠标悬停显示详情）
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {type: 'shadow'},
-        formatter: function(params) {
-          return params[0].name + '<br/>' + 
-                 '产值：' + params[0].value + ' 万亿元';
-        }
-      },
-      
-      // X轴（行业类别）
-      xAxis: {
-        type: 'category',
-        data: categories,
-        axisTick: {alignWithLabel: true},
-        axisLine: {
-          lineStyle: {color: '#9ca3af'}
-        },
-        textStyle: {color: '#4b5563', fontSize: 12}
-      },
-      
-      // Y轴（产值）
-      yAxis: {
-        type: 'value',
-        name: '产值（万亿元）',
-        min: 0,
-        max: 50,
-        interval: 10,
-        axisLine: {
-          lineStyle: {color: '#9ca3af'}
-        },
-        axisLabel: {
-          formatter: '{value}'
-        }
-      },
-      
-      // 系列（条形图）
-      series: [
-        {
-          name: '行业产值',
-          type: 'bar',
-          data: values,
-          barWidth: '60%',
+      // 生成停歇点
+      route.stops.forEach(stop => {
+        pointsData.push({
+          name: stop.name,
+          value: [...stop.coord, stop.value],
           itemStyle: {
-            borderRadius: 4,
-            // 支持自定义颜色（若未指定则使用默认调色盘）
-            color: function(params) {
-              return industryData[params.dataIndex].itemStyle.color;
-            }
+            color: route.color
           },
+          symbolSize: 10 + stop.value / 10,
           label: {
             show: true,
-            position: 'top',
-            formatter: '{c}',
-            textStyle: {color: '#333', fontWeight: 'bold'}
+            position: 'right',
+            formatter: stop.name
+          }
+        });
+        
+        // 特殊点信息
+        specialPoints.push({
+          name: stop.name,
+          value: stop.value,
+          coord: stop.coord,
+          route: route.name,
+          birds: ['鹤类', '鸻鹬类', '雁鸭类'].slice(0, Math.floor(Math.random() * 3) + 1),
+          protection: ['国家级自然保护区', '国际重要湿地', '省级保护区'][Math.floor(Math.random() * 3)]
+        });
+      });
+    });
+    
+    // 配置项
+    var option = {
+      tooltip: {
+        trigger: 'item',
+        formatter: function(params) {
+          if (params.seriesType === 'lines') {
+            return '候鸟迁徙路线：' + migrationRoutes[params.seriesIndex].name;
+          } else if (params.seriesType === 'effectScatter') {
+            const pointInfo = specialPoints.find(p => p.name === params.name);
+            if (pointInfo) {
+              return `
+                <div style="font-weight: bold;">${params.name}</div>
+                <div>所属路线：${pointInfo.route}</div>
+                <div>重要性：${params.value[2]}/100</div>
+                <div>常见鸟类：${pointInfo.birds.join('、')}</div>
+                <div>保护级别：${pointInfo.protection}</div>
+              `;
+            }
+            return params.name + '<br>重要性：' + params.value[2];
+          }
+          return params.name;
+        }
+      },
+      geo: {
+        map: 'china',
+        roam: true,
+        zoom: 1.2,
+        center: [105, 35],
+        itemStyle: {
+          normal: {
+            areaColor: '#f0f2f5',
+            borderColor: '#999',
+            borderWidth: 1
           },
           emphasis: {
-            itemStyle: {
-              color: '#2b6cb0',
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.3)'
-            }
+            areaColor: '#e0e0e0'
           }
+        },
+        label: {
+          show: false
+        }
+      },
+      series: [
+        {
+          type: 'lines',
+          zlevel: 1,
+          effect: {
+            show: true,
+            period: 6,
+            trailLength: 0.7,
+            color: '#fff',
+            symbolSize: 3
+          },
+          lineStyle: {
+            normal: {
+              width: 0,
+              opacity: 0,
+              curveness: 0.2
+            }
+          },
+          data: linesData
+        },
+        {
+          type: 'lines',
+          zlevel: 2,
+          effect: {
+            show: true,
+            period: 4,
+            trailLength: 0.6,
+            symbol: 'circle',
+            symbolSize: 3
+          },
+          lineStyle: {
+            normal: {
+              width: 1,
+              opacity: 0.6,
+              curveness: 0.2
+            }
+          },
+          data: linesData
+        },
+        {
+          type: 'effectScatter',
+          coordinateSystem: 'geo',
+          zlevel: 3,
+          rippleEffect: {
+            brushType: 'stroke'
+          },
+          label: {
+            normal: {
+              show: true,
+              position: 'right',
+              formatter: '{b}'
+            }
+          },
+          symbolSize: function(val) {
+            return val[2] / 10;
+          },
+          itemStyle: {
+            normal: {
+              color: '#756bb1'
+            }
+          },
+          data: pointsData
         }
       ]
     };
@@ -123,10 +319,11 @@
     // 使用配置项显示图表
     myChart.setOption(option);
     
-    // 窗口 resize 时自适应图表大小
+    // 窗口大小变化时重绘图表
     window.addEventListener('resize', function() {
       myChart.resize();
     });
   </script>
 </body>
 </html>
+    
