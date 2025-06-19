@@ -94,17 +94,22 @@
 
   <script>
     // 1. 先加载中国地图 JSON 数据（修复 404 问题）
-   fetch('https://cdn.bootcdn.net/ajax/libs/echarts-geo-json/1.0.0/china.json')
-      .then(res => res.json())
+   // 加载中国地图数据（替换为有效CDN）
+    fetch('https://cdn.bootcdn.net/ajax/libs/echarts-geo-json/1.2.0/china.json')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`地图数据加载失败：${res.status}`);
+        }
+        return res.json();
+      })
       .then(chinaJson => {
-        echarts.registerMap('china', chinaJson); // 注册地图
-        initChart(); // 初始化图表
+        echarts.registerMap('china', chinaJson);
+        initChart();
       })
       .catch(err => {
-        console.error('地图数据加载失败：', err);
-        alert('地图数据加载失败，请检查网络或重试');
+        console.error('地图数据加载异常：', err);
+        alert('地图加载失败，请检查网络或使用本地数据');
       });
-
     // 2. 初始化图表函数（抽离，确保地图注册后执行）
     function initChart() {
       var myChart = echarts.init(document.getElementById('map'));
