@@ -6,8 +6,6 @@
   <title>中国候鸟迁徙路线图</title>
   <!-- 引入 ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-  <!-- 引入中国地图数据 -->
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/js/china.js"></script>
   <style>
     body {
       margin: 0;
@@ -95,235 +93,248 @@
   </div>
 
   <script>
-    // 初始化图表
-    var myChart = echarts.init(document.getElementById('map'));
-    
-    // 候鸟迁徙路线数据
-    var migrationRoutes = [
-      {
-        name: '东亚-澳大利西亚路线',
-        color: '#3182bd',
-        path: [
-          [127.5, 52.5], // 起点：西伯利亚东部
-          [125.5, 48.5],
-          [124.5, 45.5],
-          [123.5, 41.5],
-          [121.5, 37.5],
-          [121.5, 32.5],
-          [121.5, 28.5],
-          [121.5, 24.5],
-          [121.5, 20.5],
-          [119.5, 16.5], // 台湾海峡
-          [117.5, 12.5], // 南海
-          [115.5, 8.5],  // 终点：澳大利亚
-        ],
-        stops: [
-          {name: '黄河三角洲', value: 100, coord: [118.5, 37.5]},
-          {name: '崇明东滩', value: 90, coord: [121.9, 31.4]},
-          {name: '深圳福田', value: 80, coord: [114.1, 22.5]},
-          {name: '台湾台南', value: 70, coord: [120.2, 22.9]},
-        ]
-      },
-      {
-        name: '中亚路线',
-        color: '#e6550d',
-        path: [
-          [85.5, 50.5], // 起点：西伯利亚南部
-          [85.5, 45.5],
-          [87.5, 40.5],
-          [90.5, 35.5],
-          [95.5, 30.5],
-          [100.5, 25.5],
-          [105.5, 20.5], // 终点：印度支那
-        ],
-        stops: [
-          {name: '青海湖', value: 95, coord: [100.2, 36.9]},
-          {name: '鄱阳湖', value: 85, coord: [116.2, 29.1]},
-          {name: '云贵高原', value: 75, coord: [103.5, 25.5]},
-        ]
-      },
-      {
-        name: '东非-西亚路线',
-        color: '#31a354',
-        path: [
-          [70.5, 45.5], // 起点：中亚
-          [75.5, 40.5],
-          [80.5, 35.5],
-          [85.5, 30.5],
-          [90.5, 25.5],
-          [95.5, 20.5], // 终点：南亚
-        ],
-        stops: [
-          {name: '新疆巴音布鲁克', value: 85, coord: [84.2, 42.9]},
-          {name: '西藏纳木错', value: 80, coord: [91.0, 30.7]},
-          {name: '云南大山包', value: 70, coord: [103.1, 27.3]},
-        ]
-      }
-    ];
-    
-    // 转换路线数据为ECharts格式
-    var linesData = [];
-    var pointsData = [];
-    var specialPoints = [];
-    
-    migrationRoutes.forEach(route => {
-      // 生成路线
-      for (let i = 0; i < route.path.length - 1; i++) {
-        linesData.push({
-          coords: [route.path[i], route.path[i + 1]],
-          lineStyle: {
-            color: route.color,
-            width: 2,
-            opacity: 0.8,
-            curveness: 0.2
-          }
-        });
-      }
-      
-      // 生成停歇点
-      route.stops.forEach(stop => {
-        pointsData.push({
-          name: stop.name,
-          value: [...stop.coord, stop.value],
-          itemStyle: {
-            color: route.color
-          },
-          symbolSize: 10 + stop.value / 10,
-          label: {
-            show: true,
-            position: 'right',
-            formatter: stop.name
-          }
-        });
-        
-        // 特殊点信息
-        specialPoints.push({
-          name: stop.name,
-          value: stop.value,
-          coord: stop.coord,
-          route: route.name,
-          birds: ['鹤类', '鸻鹬类', '雁鸭类'].slice(0, Math.floor(Math.random() * 3) + 1),
-          protection: ['国家级自然保护区', '国际重要湿地', '省级保护区'][Math.floor(Math.random() * 3)]
-        });
+    // 1. 先加载中国地图 JSON 数据（修复 404 问题）
+    fetch('https://fastly.jsdelivr.net/npm/echarts-geo-json@1.0.0/china.json')
+      .then(res => res.json())
+      .then(chinaJson => {
+        echarts.registerMap('china', chinaJson); // 注册地图
+        initChart(); // 初始化图表
+      })
+      .catch(err => {
+        console.error('地图数据加载失败：', err);
+        alert('地图数据加载失败，请检查网络或重试');
       });
-    });
-    
-    // 配置项
-    var option = {
-      tooltip: {
-        trigger: 'item',
-        formatter: function(params) {
-          if (params.seriesType === 'lines') {
-            return '候鸟迁徙路线：' + migrationRoutes[params.seriesIndex].name;
-          } else if (params.seriesType === 'effectScatter') {
-            const pointInfo = specialPoints.find(p => p.name === params.name);
-            if (pointInfo) {
-              return `
-                <div style="font-weight: bold;">${params.name}</div>
-                <div>所属路线：${pointInfo.route}</div>
-                <div>重要性：${params.value[2]}/100</div>
-                <div>常见鸟类：${pointInfo.birds.join('、')}</div>
-                <div>保护级别：${pointInfo.protection}</div>
-              `;
-            }
-            return params.name + '<br>重要性：' + params.value[2];
-          }
-          return params.name;
-        }
-      },
-      geo: {
-        map: 'china',
-        roam: true,
-        zoom: 1.2,
-        center: [105, 35],
-        itemStyle: {
-          normal: {
-            areaColor: '#f0f2f5',
-            borderColor: '#999',
-            borderWidth: 1
-          },
-          emphasis: {
-            areaColor: '#e0e0e0'
-          }
-        },
-        label: {
-          show: false
-        }
-      },
-      series: [
+
+    // 2. 初始化图表函数（抽离，确保地图注册后执行）
+    function initChart() {
+      var myChart = echarts.init(document.getElementById('map'));
+      
+      // 候鸟迁徙路线数据
+      var migrationRoutes = [
         {
-          type: 'lines',
-          zlevel: 1,
-          effect: {
-            show: true,
-            period: 6,
-            trailLength: 0.7,
-            color: '#fff',
-            symbolSize: 3
-          },
-          lineStyle: {
-            normal: {
-              width: 0,
-              opacity: 0,
+          name: '东亚-澳大利西亚路线',
+          color: '#3182bd',
+          path: [
+            [127.5, 52.5], // 起点：西伯利亚东部
+            [125.5, 48.5],
+            [124.5, 45.5],
+            [123.5, 41.5],
+            [121.5, 37.5],
+            [121.5, 32.5],
+            [121.5, 28.5],
+            [121.5, 24.5],
+            [121.5, 20.5],
+            [119.5, 16.5], // 台湾海峡
+            [117.5, 12.5], // 南海
+            [115.5, 8.5],  // 终点：澳大利亚
+          ],
+          stops: [
+            {name: '黄河三角洲', value: 100, coord: [118.5, 37.5]},
+            {name: '崇明东滩', value: 90, coord: [121.9, 31.4]},
+            {name: '深圳福田', value: 80, coord: [114.1, 22.5]},
+            {name: '台湾台南', value: 70, coord: [120.2, 22.9]},
+          ]
+        },
+        {
+          name: '中亚路线',
+          color: '#e6550d',
+          path: [
+            [85.5, 50.5], // 起点：西伯利亚南部
+            [85.5, 45.5],
+            [87.5, 40.5],
+            [90.5, 35.5],
+            [95.5, 30.5],
+            [100.5, 25.5],
+            [105.5, 20.5], // 终点：印度支那
+          ],
+          stops: [
+            {name: '青海湖', value: 95, coord: [100.2, 36.9]},
+            {name: '鄱阳湖', value: 85, coord: [116.2, 29.1]},
+            {name: '云贵高原', value: 75, coord: [103.5, 25.5]},
+          ]
+        },
+        {
+          name: '东非-西亚路线',
+          color: '#31a354',
+          path: [
+            [70.5, 45.5], // 起点：中亚
+            [75.5, 40.5],
+            [80.5, 35.5],
+            [85.5, 30.5],
+            [90.5, 25.5],
+            [95.5, 20.5], // 终点：南亚
+          ],
+          stops: [
+            {name: '新疆巴音布鲁克', value: 85, coord: [84.2, 42.9]},
+            {name: '西藏纳木错', value: 80, coord: [91.0, 30.7]},
+            {name: '云南大山包', value: 70, coord: [103.1, 27.3]},
+          ]
+        }
+      ];
+      
+      // 转换路线数据为ECharts格式
+      var linesData = [];
+      var pointsData = [];
+      var specialPoints = [];
+      
+      migrationRoutes.forEach(route => {
+        // 生成路线
+        for (let i = 0; i < route.path.length - 1; i++) {
+          linesData.push({
+            coords: [route.path[i], route.path[i + 1]],
+            lineStyle: {
+              color: route.color,
+              width: 2,
+              opacity: 0.8,
               curveness: 0.2
             }
-          },
-          data: linesData
-        },
-        {
-          type: 'lines',
-          zlevel: 2,
-          effect: {
-            show: true,
-            period: 4,
-            trailLength: 0.6,
-            symbol: 'circle',
-            symbolSize: 3
-          },
-          lineStyle: {
-            normal: {
-              width: 1,
-              opacity: 0.6,
-              curveness: 0.2
-            }
-          },
-          data: linesData
-        },
-        {
-          type: 'effectScatter',
-          coordinateSystem: 'geo',
-          zlevel: 3,
-          rippleEffect: {
-            brushType: 'stroke'
-          },
-          label: {
-            normal: {
+          });
+        }
+        
+        // 生成停歇点
+        route.stops.forEach(stop => {
+          pointsData.push({
+            name: stop.name,
+            value: [...stop.coord, stop.value],
+            itemStyle: {
+              color: route.color
+            },
+            symbolSize: 10 + stop.value / 10,
+            label: {
               show: true,
               position: 'right',
-              formatter: '{b}'
+              formatter: stop.name
             }
-          },
-          symbolSize: function(val) {
-            return val[2] / 10;
-          },
+          });
+          
+          // 特殊点信息
+          specialPoints.push({
+            name: stop.name,
+            value: stop.value,
+            coord: stop.coord,
+            route: route.name,
+            birds: ['鹤类', '鸻鹬类', '雁鸭类'].slice(0, Math.floor(Math.random() * 3) + 1),
+            protection: ['国家级自然保护区', '国际重要湿地', '省级保护区'][Math.floor(Math.random() * 3)]
+          });
+        });
+      });
+      
+      // 配置项
+      var option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params) {
+            if (params.seriesType === 'lines') {
+              return '候鸟迁徙路线：' + migrationRoutes[params.seriesIndex].name;
+            } else if (params.seriesType === 'effectScatter') {
+              const pointInfo = specialPoints.find(p => p.name === params.name);
+              if (pointInfo) {
+                return `
+                  <div style="font-weight: bold;">${params.name}</div>
+                  <div>所属路线：${pointInfo.route}</div>
+                  <div>重要性：${params.value[2]}/100</div>
+                  <div>常见鸟类：${pointInfo.birds.join('、')}</div>
+                  <div>保护级别：${pointInfo.protection}</div>
+                `;
+              }
+              return params.name + '<br>重要性：' + params.value[2];
+            }
+            return params.name;
+          }
+        },
+        geo: {
+          map: 'china', // 必须与 registerMap 的 key 一致
+          roam: true,
+          zoom: 1.2,
+          center: [105, 35],
           itemStyle: {
             normal: {
-              color: '#756bb1'
+              areaColor: '#f0f2f5',
+              borderColor: '#999',
+              borderWidth: 1
+            },
+            emphasis: {
+              areaColor: '#e0e0e0'
             }
           },
-          data: pointsData
-        }
-      ]
-    };
-    
-    // 使用配置项显示图表
-    myChart.setOption(option);
-    
-    // 窗口大小变化时重绘图表
-    window.addEventListener('resize', function() {
-      myChart.resize();
-    });
+          label: {
+            show: false
+          }
+        },
+        series: [
+          {
+            type: 'lines',
+            zlevel: 1,
+            effect: {
+              show: true,
+              period: 6,
+              trailLength: 0.7,
+              color: '#fff',
+              symbolSize: 3
+            },
+            lineStyle: {
+              normal: {
+                width: 0,
+                opacity: 0,
+                curveness: 0.2
+              }
+            },
+            data: linesData
+          },
+          {
+            type: 'lines',
+            zlevel: 2,
+            effect: {
+              show: true,
+              period: 4,
+              trailLength: 0.6,
+              symbol: 'circle',
+              symbolSize: 3
+            },
+            lineStyle: {
+              normal: {
+                width: 1,
+                opacity: 0.6,
+                curveness: 0.2
+              }
+            },
+            data: linesData
+          },
+          {
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            zlevel: 3,
+            rippleEffect: {
+              brushType: 'stroke'
+            },
+            label: {
+              normal: {
+                show: true,
+                position: 'right',
+                formatter: '{b}'
+              }
+            },
+            symbolSize: function(val) {
+              return val[2] / 10;
+            },
+            itemStyle: {
+              normal: {
+                color: '#756bb1'
+              }
+            },
+            data: pointsData
+          }
+        ]
+      };
+      
+      // 使用配置项显示图表
+      myChart.setOption(option);
+      
+      // 窗口大小变化时重绘图表
+      window.addEventListener('resize', function() {
+        myChart.resize();
+      });
+    }
   </script>
 </body>
 </html>
-    
