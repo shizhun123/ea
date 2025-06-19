@@ -3,43 +3,130 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ECharts 地图示例</title>
+  <title>行业产值对比条形图</title>
   <!-- 引入 ECharts -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    body { font-family: 'Microsoft YaHei', sans-serif; }
+    #main { width: 800px; height: 600px; margin: 0 auto; }
+  </style>
 </head>
 <body>
   <!-- 图表容器 -->
-  <div id="main" style="width: 800px;height:600px;"></div>
+  <div id="main"></div>
+
   <script>
     // 初始化图表
     var myChart = echarts.init(document.getElementById('main'));
     
+    // 准备数据（各行业2024年产值对比，单位：万亿元）
+    var industryData = [
+      {name: '信息技术', value: 18.5, itemStyle: {color: '#3182bd'}},
+      {name: '制造业', value: 32.2, itemStyle: {color: '#f6ad55'}},
+      {name: '金融业', value: 15.8, itemStyle: {color: '#48bb78'}},
+      {name: '服务业', value: 42.3, itemStyle: {color: '#ed8936'}},
+      {name: '能源业', value: 12.6, itemStyle: {color: '#9f7aea'}},
+      {name: '农业', value: 8.7, itemStyle: {color: '#2b6cb0'}},
+      {name: '建筑业', value: 14.5, itemStyle: {color: '#e53e3e'}}
+    ];
+    
+    // 提取类别和数值用于坐标轴
+    var categories = industryData.map(item => item.name);
+    var values = industryData.map(item => item.value);
+    
     // 指定图表配置项和数据
     var option = {
+      // 标题
       title: {
-        text: '中国地图示例',
-        left: 'center'
+        text: '2024年中国主要行业产值对比',
+        subtext: '数据来源：国家统计局（模拟）',
+        left: 'center',
+        textStyle: {fontSize: 18, fontWeight: 'bold'}
       },
+      
+      // 工具箱（包含保存图片等功能）
+      toolbox: {
+        show: true,
+        feature: {
+          saveAsImage: {show: true}
+        }
+      },
+      
+      // 提示框（鼠标悬停显示详情）
       tooltip: {
-        trigger: 'item'
+        trigger: 'axis',
+        axisPointer: {type: 'shadow'},
+        formatter: function(params) {
+          return params[0].name + '<br/>' + 
+                 '产值：' + params[0].value + ' 万亿元';
+        }
       },
+      
+      // X轴（行业类别）
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisTick: {alignWithLabel: true},
+        axisLine: {
+          lineStyle: {color: '#9ca3af'}
+        },
+        textStyle: {color: '#4b5563', fontSize: 12}
+      },
+      
+      // Y轴（产值）
+      yAxis: {
+        type: 'value',
+        name: '产值（万亿元）',
+        min: 0,
+        max: 50,
+        interval: 10,
+        axisLine: {
+          lineStyle: {color: '#9ca3af'}
+        },
+        axisLabel: {
+          formatter: '{value}'
+        }
+      },
+      
+      // 系列（条形图）
       series: [
         {
-          name: '数据',
-          type: 'map',
-          mapType: 'china',
-          data: [
-            {name: '北京', value: 100},
-            {name: '上海', value: 200},
-            {name: '广东', value: 300},
-            // 其他省份数据...
-          ]
+          name: '行业产值',
+          type: 'bar',
+          data: values,
+          barWidth: '60%',
+          itemStyle: {
+            borderRadius: 4,
+            // 支持自定义颜色（若未指定则使用默认调色盘）
+            color: function(params) {
+              return industryData[params.dataIndex].itemStyle.color;
+            }
+          },
+          label: {
+            show: true,
+            position: 'top',
+            formatter: '{c}',
+            textStyle: {color: '#333', fontWeight: 'bold'}
+          },
+          emphasis: {
+            itemStyle: {
+              color: '#2b6cb0',
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.3)'
+            }
+          }
         }
       ]
     };
     
     // 使用配置项显示图表
     myChart.setOption(option);
+    
+    // 窗口 resize 时自适应图表大小
+    window.addEventListener('resize', function() {
+      myChart.resize();
+    });
   </script>
 </body>
 </html>
